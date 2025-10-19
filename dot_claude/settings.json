@@ -1,6 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "alwaysThinkingEnabled": true,
+  "askBeforeRunningTool": false,
+  "includeCoAuthoredBy": false,
   "feedbackSurveyState": {
     "lastShownTime": 1755857465860
   }
