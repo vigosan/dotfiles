@@ -9,6 +9,9 @@
 - Visual feedback for optimistic items
 - Handle failures with fallback
 
+### Moving State Down
+Push state to smallest component that needs it. Prevents unnecessary re-renders of siblings. State in parent → all children re-render; state in child → only that child re-renders. Use when state is independent and siblings don't need it.
+
 ### Dependency Inversion & Testing
 - High-level ≠ depend on low-level (both depend on abstractions)
 - Decouple data fetching from rendering
