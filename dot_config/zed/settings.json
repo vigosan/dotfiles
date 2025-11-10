@@ -38,6 +38,9 @@
     "enabled": true
   },
   "languages": {
+    "HTML": {
+      "formatter": "language_server"
+    },
     "JavaScript": {
       "formatter": "language_server"
     },
