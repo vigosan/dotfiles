@@ -37,6 +37,14 @@ alias grh='git reset --hard'
 alias groh='git reset origin/$(git_current_branch) --hard'
 alias gl='git log --oneline'
 
+# ============================================================================
+# Claude CLI Aliases
+# ============================================================================
+
+alias claude-yolo='claude --dangerously-skip-permissions'
+alias claude-r='claude --resume'
+alias claude-yr='claude --dangerously-skip-permissions --resume'
+
 {{- if .work }}
 
 # ============================================================================
