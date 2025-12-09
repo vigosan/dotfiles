@@ -6,6 +6,37 @@
 - Pragmatic over dogmatic
 - Boring & obvious > clever code
 - Single responsibility, no premature abstractions
+- **TDD by default**: Tests enable verification, safe refactoring, and confident changes
+
+## Test-Driven Development (TDD)
+
+### Why TDD
+- **Verification over guessing**: Without independent verification, implementation is guessing
+- **Safe refactoring**: Tests enable aggressive refactoring and safe code deletion
+- **Design feedback**: Red-green-refactor reveals design issues early
+- **AI collaboration**: TDD makes AI-assisted development more effective (agents need verification)
+
+### TDD Cycle (Red-Green-Refactor)
+1. **Red**: Write failing test for desired behavior
+2. **Green**: Write minimal code to pass (no more)
+3. **Refactor**: Improve design while tests stay green
+4. Repeat
+
+### When to Apply TDD
+- **Always**: New features, bug fixes (write test that reproduces bug first)
+- **Exception**: Exploratory spikes (throw away code, then TDD the real implementation)
+
+### Advanced Testing Techniques
+Consider when appropriate:
+- Characterization tests (capture existing behavior before refactoring)
+- Mutation testing (verify test quality)
+- Image/snapshot regression testing (UI changes)
+
+### TDD Discipline
+- Never skip the red phase (proves test catches failure)
+- Keep green phase minimal (resist adding "just one more thing")
+- Refactor only with green bar
+- If stuck, delete and restart with smaller test
 
 ## Workflow
 
