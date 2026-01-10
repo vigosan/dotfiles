@@ -2,6 +2,76 @@
 
 ## React 2025 Patterns
 
+### Modern Hooks (React 19+)
+
+#### useEffectEvent
+Decouples effects from state dependencies - functions always access current state without stale closures.
+
+```typescript
+// ❌ Stale closure problem
+useEffect(() => {
+  const interval = setInterval(() => {
+    console.log(userName); // Stale value!
+  }, 1000);
+  return () => clearInterval(interval);
+}, []); // userName missing → stale, included → infinite reruns
+
+// ✅ useEffectEvent solution
+const onTick = useEffectEvent((tick: number) =>
+  setMessage(`${userName} logged in for ${tick}s`) // Always current
+);
+
+useEffect(() => {
+  let ticks = 0;
+  const interval = setInterval(() => onTick(++ticks), 1000);
+  return () => clearInterval(interval);
+}, []); // No userName dependency needed
+```
+
+**When to use**: Access current state in effects without triggering re-runs (timers, subscriptions, event handlers inside effects).
+
+#### useSyncExternalStore
+For subscriptions to external stores (browser APIs, third-party state).
+
+```typescript
+const isOnline = useSyncExternalStore(
+  (callback) => {
+    window.addEventListener('online', callback);
+    window.addEventListener('offline', callback);
+    return () => {
+      window.removeEventListener('online', callback);
+      window.removeEventListener('offline', callback);
+    };
+  },
+  () => navigator.onLine,
+  () => true // SSR fallback
+);
+```
+
+**When to use**: matchMedia, scroll position, external state libraries, any subscription-based external data.
+
+#### useDeferredValue
+Defers expensive computations to keep UI responsive.
+
+```typescript
+const [query, setQuery] = useState('');
+const deferredQuery = useDeferredValue(query);
+
+// Input stays snappy, filtering happens in background
+const filtered = useMemo(
+  () => items.filter(item => item.name.includes(deferredQuery)),
+  [deferredQuery]
+);
+```
+
+**Pairs with**: `startTransition` for deprioritizing expensive updates.
+
+### Effect Best Practices
+- **Isolate side effects**: Reserve `useEffect` for external operations only (network, DOM, subscriptions)
+- **Compute during render**: Use `useMemo`/`useCallback` for derived state, not effects
+- **SSR fallbacks**: Always provide deterministic values for window-dependent hooks
+- **Custom hooks**: Extract domain logic into focused, reusable hooks
+
 ### Optimistic UI with useOptimistic
 - Assume success, update UI immediately
 - Combine with startTransition
