@@ -32,8 +32,8 @@ path/to/file.ts (0% coverage)
 - Tests without meaningful descriptions
 
 **Testing Library best practices:**
-- Prefer `getByRole` over `getByTestId`
-- Avoid `container.querySelector`
+- Prefer `getByTestId` for stability (data-testid required on testable elements)
+- Avoid `container.querySelector` and CSS class selectors
 - Use `userEvent` over `fireEvent`
 - Proper `act()` usage for state updates
 
