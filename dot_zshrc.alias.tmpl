@@ -53,4 +53,18 @@ alias claude-yr='claude --dangerously-skip-permissions --resume'
 
 alias claude-fw='env AWS_PROFILE=ai_codegen CLAUDE_CODE_USE_BEDROCK=1 AWS_REGION=us-east-1 ANTHROPIC_MODEL="arn:aws:bedrock:us-east-1:193501891505:inference-profile/us.anthropic.claude-sonnet-4-20250514-v1:0" claude'
 
+function aws-fw() {
+  echo "→ AWS SSO login..."
+  aws sso login --profile sso_platform_sta_dev || return 1
+
+  echo "→ ECR Docker login..."
+  aws ecr get-login-password --region us-east-1 --profile sso_platform_sta_dev | \
+    docker login --username AWS --password-stdin 339713173028.dkr.ecr.us-east-1.amazonaws.com || return 1
+
+  echo "→ CodeArtifact login..."
+  magellan codeartifact login && source "$HOME/.codeartifact_env"
+
+  echo "✓ Work login complete"
+}
+
 {{- end }}
