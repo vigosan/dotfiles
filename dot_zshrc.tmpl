@@ -117,3 +117,8 @@ eval "$(mise activate zsh)"
 
 # Starship prompt (must be last)
 eval "$(starship init zsh)"
+{{- if .work }}
+
+# CodeArtifact environment
+[[ -f "$HOME/.codeartifact_env" ]] && source "$HOME/.codeartifact_env"
+{{- end }}
