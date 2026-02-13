@@ -1,4 +1,7 @@
 {
+  "session": {
+    "trust_all_worktrees": true
+  },
   "agent": {
     "always_allow_tool_actions": true,
     "default_model": {
@@ -14,10 +17,8 @@
     "button": false
   },
   "edit_predictions": {
+    "provider": "copilot",
     "mode": "subtle"
-  },
-  "features": {
-    "edit_prediction_provider": "copilot"
   },
   "format_on_save": "off",
   "formatter": [
