@@ -41,11 +41,10 @@ alias gl='git log --oneline'
 # Claude CLI Aliases
 # ============================================================================
 
-# Personal Claude (uses Anthropic API key from secrets)
-alias claude='claude-code'
-alias claude-yolo='claude-code --dangerously-skip-permissions'
-alias claude-r='claude-code --resume'
-alias claude-yr='claude-code --dangerously-skip-permissions --resume'
+# Personal Claude (uses Anthropic account)
+alias claude-yolo='claude --dangerously-skip-permissions'
+alias claude-r='claude --resume'
+alias claude-yr='claude --dangerously-skip-permissions --resume'
 
 {{- if .work }}
 
@@ -54,9 +53,9 @@ alias claude-yr='claude-code --dangerously-skip-permissions --resume'
 # ============================================================================
 
 # Work Claude (uses AWS Bedrock with work profile)
-alias claude-fw='claude-code --profile work'
-alias claude-fw-yolo='claude-code --profile work --dangerously-skip-permissions'
-alias claude-fw-r='claude-code --profile work --resume'
+alias claude-fw='claude --profile work'
+alias claude-fw-yolo='claude --profile work --dangerously-skip-permissions'
+alias claude-fw-r='claude --profile work --resume'
 
 function aws-fw() {
   echo "→ AWS SSO login..."
