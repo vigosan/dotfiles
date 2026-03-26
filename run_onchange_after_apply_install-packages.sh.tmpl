@@ -87,7 +87,6 @@ defaults write com.apple.dock "largesize" -int "64"
 
 if command -v dockutil &>/dev/null; then
   dockutil --no-restart --remove all
-  dockutil --no-restart --add "/System/Applications/Apps.app"
   dockutil --no-restart --add "/Applications/Brave Browser.app"
   dockutil --no-restart --add "/System/Applications/Mail.app"
   dockutil --no-restart --add "/System/Applications/Calendar.app"
