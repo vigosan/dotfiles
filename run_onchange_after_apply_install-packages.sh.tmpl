@@ -29,18 +29,14 @@ echo "Installing packages from Brewfile..."
 if [ -f "$HOME/Brewfile" ]; then
   echo "Found Brewfile, installing packages..."
 
-  # mas (Mac App Store CLI) requires App Store sign-in.
-  # Install without mas entries first, then attempt mas separately.
-  if mas account &&>/dev/null; then
-    brew bundle --file="$HOME/Brewfile"
-  else
-    echo "⚠️  Not signed into Mac App Store — skipping App Store installs (Keynote, Numbers, Pages, Xcode)."
-    echo "   Sign in to the App Store and run 'brew bundle --file=~/Brewfile' to install remaining apps."
-    TMPFILE=$(mktemp)
-    trap 'rm -f "$TMPFILE"' EXIT
-    grep -v "^mas " "$HOME/Brewfile" > "$TMPFILE"
-    brew bundle --file="$TMPFILE"
-  fi
+  # mas 2.x removed the `account` subcommand — no reliable programmatic auth check exists.
+  # Always install without mas entries; App Store apps require manual sign-in.
+  TMPFILE=$(mktemp)
+  trap 'rm -f "$TMPFILE"' EXIT
+  grep -v "^mas " "$HOME/Brewfile" > "$TMPFILE"
+  brew bundle --file="$TMPFILE"
+  echo "⚠️  App Store apps (Keynote, Numbers, Pages, Xcode) require manual install."
+  echo "   Sign into App Store, then run: brew bundle --file=~/Brewfile"
 
   echo "Package installation completed!"
 else
