@@ -1,25 +1,22 @@
 #!/bin/bash
 
+if [[ $(uname -m) == "arm64" ]]; then
+  BREW_BIN="/opt/homebrew/bin/brew"
+else
+  BREW_BIN="/usr/local/bin/brew"
+fi
+
 # Install Homebrew if not present
-if ! command -v brew >/dev/null 2>&1; then
+if ! command -v brew &>/dev/null; then
   echo "Installing Homebrew..."
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-  # Add Homebrew to PATH for current session
-  if [[ $(uname -m) == "arm64" ]]; then
-    # Apple Silicon Macs
-    echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
-    eval "$(/opt/homebrew/bin/brew shellenv)"
-  else
-    # Intel Macs
-    echo 'eval "$(/usr/local/bin/brew shellenv)"' >> ~/.zprofile
-    eval "$(/usr/local/bin/brew shellenv)"
-  fi
-
+  echo "eval \"\$($BREW_BIN shellenv)\"" >> ~/.zprofile
   echo "Homebrew installed successfully!"
 else
   echo "Homebrew already installed."
 fi
+
+eval "$($BREW_BIN shellenv)"
 
 # Update Homebrew
 echo "Updating Homebrew..."
@@ -28,24 +25,30 @@ brew update
 # Install packages from Brewfile
 echo "Installing packages from Brewfile..."
 
-# Ensure Homebrew is in PATH
-if [[ $(uname -m) == "arm64" ]]; then
-  eval "$(/opt/homebrew/bin/brew shellenv)"
-else
-  eval "$(/usr/local/bin/brew shellenv)"
-fi
-
 # Install packages from Brewfile
 if [ -f "$HOME/Brewfile" ]; then
   echo "Found Brewfile, installing packages..."
-  brew bundle --file="$HOME/Brewfile"
+
+  # mas (Mac App Store CLI) requires App Store sign-in.
+  # Install without mas entries first, then attempt mas separately.
+  if mas account &&>/dev/null; then
+    brew bundle --file="$HOME/Brewfile"
+  else
+    echo "⚠️  Not signed into Mac App Store — skipping App Store installs (Keynote, Numbers, Pages, Xcode)."
+    echo "   Sign in to the App Store and run 'brew bundle --file=~/Brewfile' to install remaining apps."
+    TMPFILE=$(mktemp)
+    trap 'rm -f "$TMPFILE"' EXIT
+    grep -v "^mas " "$HOME/Brewfile" > "$TMPFILE"
+    brew bundle --file="$TMPFILE"
+  fi
+
   echo "Package installation completed!"
 else
   echo "Brewfile not found at $HOME/Brewfile"
 fi
 
 # Configure GitHub CLI and Copilot
-if command -v gh >/dev/null 2>&1; then
+if command -v gh &>/dev/null; then
   echo "Configuring GitHub CLI and Copilot..."
 
   # Install GitHub Copilot extension if not already installed
@@ -58,7 +61,7 @@ if command -v gh >/dev/null 2>&1; then
   fi
 
   # Check if user is authenticated
-  if ! gh auth status >/dev/null 2>&1; then
+  if ! gh auth status &>/dev/null; then
     echo "⚠️  GitHub CLI is not authenticated."
     echo "💡 Please run 'gh auth login' to authenticate and enable Copilot features."
     echo "   This step requires interactive authentication with your GitHub account."
@@ -86,7 +89,7 @@ defaults write com.apple.dock "magnification" -bool "true"
 # Set magnification size to medium (64px)
 defaults write com.apple.dock "largesize" -int "64"
 
-if command -v dockutil >/dev/null 2>&1; then
+if command -v dockutil &>/dev/null; then
   dockutil --no-restart --remove all
   dockutil --no-restart --add "/System/Applications/Apps.app"
   dockutil --no-restart --add "/Applications/Brave Browser.app"
