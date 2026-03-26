@@ -14,6 +14,6 @@ echo "Downloading MonoLisa font from 1Password..."
 op document get "MonoLisa-Plus-stable" --vault "Private" --output "$TMPZIP"
 
 unzip -q "$TMPZIP" -d "$TMPDIR"
-find "$TMPDIR" -name "*.otf" -o -name "*.ttf" | xargs -I{} cp {} ~/Library/Fonts/
+cp "$TMPDIR"/ttf/*.ttf ~/Library/Fonts/
 
 echo "MonoLisa font installed."
