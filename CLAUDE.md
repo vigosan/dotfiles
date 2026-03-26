@@ -4,268 +4,91 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is a standalone chezmoi repository for managing dotfiles and macOS system configuration across multiple Mac machines. It provides automated setup for a complete development environment with personalized configurations.
-
-## Architecture
-
-### System Components
-- **chezmoi source directory**: `/Users/vicent/.local/share/chezmoi` (this repository)
-- **Target directory**: `/Users/vicent` (home directory)
-- **Configuration templates**: Uses `.chezmoi.toml.tmpl` for personalization prompts
-- **Data storage**: `.chezmoidata.toml` stores personalized values (git name, email, work profile)
-
-### Key Features
-- **Profile-based configuration**: Work vs personal profiles affect which apps get installed
-- **One-command setup**: `sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply vigosan/dotfiles`
-- **Automated package installation**: Brewfile with conditional packages based on profile
-- **macOS system defaults**: Comprehensive defaults for Dock, Finder, trackpad, keyboard, etc.
-- **Template-based personalization**: Git config and Brewfile use templates with user-specific data
+A chezmoi-managed dotfiles repository for macOS. Chezmoi's source directory is `/Users/vicent/.local/share/chezmoi` (this repo). Changes here apply to the home directory via `chezmoi apply`.
 
 ## Common Commands
 
-### Daily Usage
 ```bash
-# Sync changes from remote repository and apply
-chezmoi update
-
-# View what would change before applying
-chezmoi status
-chezmoi diff
-
-# Apply changes to home directory
-chezmoi apply
-
-# Edit managed files (opens in $EDITOR)
-chezmoi edit ~/.zshrc
-chezmoi edit ~/.config/zed/settings.json
-
-# List all managed files
-chezmoi managed
+chezmoi apply               # Apply source changes to home directory
+chezmoi apply --dry-run --verbose  # Preview changes without applying
+chezmoi diff                # Show pending changes
+chezmoi status              # Show file status
+chezmoi execute-template < file.tmpl  # Test template rendering
+chezmoi data                # Show all template variables
+chezmoi doctor              # Check system state
 ```
 
-### Adding New Files to Management
-```bash
-# Add a file to chezmoi (creates dot_filename)
-chezmoi add ~/.filename
+## File Naming Conventions
 
-# Add with template support (creates dot_filename.tmpl)
-chezmoi add --template ~/.gitconfig
+| Source name | Target |
+|-------------|--------|
+| `dot_filename` | `.filename` |
+| `dot_filename.tmpl` | `.filename` (with template processing) |
+| `executable_filename` | executable file |
+| `private_dot_filename` | `.filename` (chmod 600) |
+| `run_onchange_*` | script that runs when content changes |
+| `run_once_*` | script that runs only once |
+| `run_before_*` | script that runs before applying |
 
-# Add executable file (creates executable_filename)
-chezmoi add --template ~/.local/bin/script
+## Repository Structure
+
+```
+.chezmoi.toml.tmpl          # Prompts for user data on new machine setup
+.chezmoidata.toml           # Stored values: name, email, work (bool)
+Brewfile.tmpl               # Homebrew packages, profile-conditional
+dot_gitconfig.tmpl          # Git config with name/email from data
+dot_zshrc.tmpl              # Main zsh config
+dot_zshrc.alias.tmpl        # Git and Claude CLI aliases (sourced by zshrc)
+dot_zshrc.secrets.tmpl      # Secrets template (sources ~/.zshrc.secrets)
+dot_config/nvim/            # Neovim config with lazy.nvim plugin manager
+dot_config/zed/settings.json  # Zed editor settings
+dot_claude/CLAUDE.md        # Global Claude Code rules (→ ~/.claude/CLAUDE.md)
+dot_claude/settings.json    # Claude Code settings
+dot_claude/commands/        # Custom Claude slash commands
+dot_claude/skills/          # Custom Claude skills
+run_before_install-1password-cli.sh.tmpl  # Installs 1Password CLI before main setup
+run_onchange_after_apply_install-packages.sh.tmpl  # Main setup: Homebrew, packages, macOS defaults
 ```
 
-### Making Changes and Syncing
-```bash
-# Commit and push changes to repository
-chezmoi git add .
-chezmoi git commit -m "Update configuration"
-chezmoi git push
+## Template Variables
 
-# Or use standard git commands in source directory
-cd ~/.local/share/chezmoi
-git add .
-git commit -m "Update configuration"
-git push
-```
+Available in all `.tmpl` files:
+- `{{ .name }}` — full name
+- `{{ .email }}` — email address
+- `{{ .work }}` — boolean, work vs personal profile
+- `{{ .chezmoi.homeDir }}` — home directory path
 
-### Testing and Debugging
-```bash
-# Dry-run to see what would be applied
-chezmoi apply --dry-run --verbose
+## Profile System
 
-# Check chezmoi configuration and system state
-chezmoi doctor
+The `.work` boolean gates both packages and shell config:
 
-# Test template rendering
-chezmoi execute-template < ~/.local/share/chezmoi/dot_gitconfig.tmpl
+**Work only** (`{{ if .work }}`): Postman, Slack, `claude-fw*` aliases (AWS Bedrock), CodeArtifact env sourcing
 
-# View current configuration data
-chezmoi data
-```
+**Personal only** (`{{ else }}`): Audacity, ffmpeg, IINA, Meta, rekordbox, soulseek, spek, spotify, Stripe CLI, Telegram, Tiny Player
 
-## File Structure and Naming Conventions
+## Key Implementation Notes
 
-### chezmoi File Naming Patterns
-- `dot_filename` → `.filename` in home directory
-- `dot_filename.tmpl` → `.filename` with template processing
-- `executable_filename` → executable file in home directory
-- `private_dot_filename` → private `.filename` (permissions 600)
-- `run_onchange_*` → script that runs when the file content changes
-- `run_once_*` → script that runs only once during initial setup
+### Setup Script (`run_onchange_after_apply_install-packages.sh.tmpl`)
 
-### Repository Structure
-```
-.
-├── .chezmoi.toml.tmpl                      # Prompts for user data (name, email, work profile)
-├── .chezmoidata.toml                       # Stores personalized data values
-├── Brewfile.tmpl                           # Homebrew package definitions (conditional)
-├── dot_gitconfig.tmpl                      # Git configuration (personalized)
-├── dot_zshrc                               # Zsh shell configuration
-├── dot_config/
-│   └── zed/settings.json                   # Zed editor settings
-└── run_onchange_after_apply_install-packages.sh.tmpl  # Package installation and macOS setup
-```
+Runs whenever file content changes. Order: Homebrew install → `brew bundle` → GitHub CLI + Copilot extension → macOS defaults (Dock, Finder, Trackpad, Screenshot, General UI) → restart Dock/Finder/SystemUIServer.
 
-### Currently Managed Files
-- `.gitconfig` - Git configuration with personalized name/email
-- `.zshrc` - Zsh configuration with zoxide, mise, starship
-- `.config/zed/settings.json` - Zed editor settings
-- `Brewfile` - Homebrew packages (profile-dependent)
-
-### Template Variables
-Templates have access to these variables directly:
-- `{{ .name }}` - User's full name
-- `{{ .email }}` - User's email address
-- `{{ .work }}` - Boolean for work vs personal profile
-- `{{ .chezmoi.homeDir }}` - Home directory path
-
-## Working with This Repository
-
-### Adding New Configuration Files
-
-1. **Non-templated files** (same on all machines):
-   ```bash
-   # Add file directly
-   chezmoi add ~/.config/app/config.json
-
-   # This creates: dot_config/app/config.json
-   ```
-
-2. **Templated files** (personalized per machine):
-   ```bash
-   # Add with template support
-   chezmoi add --template ~/.someconfig
-
-   # Edit the created .tmpl file to add template variables
-   # Example: {{ .email }} or {{ .work }}
-   ```
-
-3. **Profile-specific packages** (work vs personal):
-   ```bash
-   # Edit Brewfile.tmpl and add to appropriate section:
-   {{- if .work }}
-   cask 'work-app'
-   {{- else }}
-   cask 'personal-app'
-   {{- end }}
-   ```
-
-### Modifying macOS Defaults
-
-The `run_onchange_after_apply_install-packages.sh.tmpl` script handles:
-- Homebrew installation and package management
-- macOS system preferences (Dock, Finder, trackpad, keyboard, etc.)
-- Application defaults (Safari, Mail, etc.)
-
-When modifying this file:
-- The script runs automatically when its content changes
-- Use `defaults write` commands for system preferences
-- Always restart affected applications at the end
-- Test changes on current machine before committing
-
-### Template Development
-
-When creating or editing `.tmpl` files:
-```bash
-# Test template rendering before applying
-chezmoi execute-template < file.tmpl
-
-# Check what data is available
-chezmoi data
-
-# Common template patterns:
-# - Conditional: {{- if .work }}...{{- end }}
-# - Variable: {{ .email | quote }}
-# - Home dir: {{ .chezmoi.homeDir }}
-```
-
-## New Machine Setup
-
-To set up a new Mac with this configuration:
-
-```bash
-# One-command setup (installs chezmoi, clones repo, applies config)
-sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply vigosan/dotfiles
-```
-
-This will:
-1. Prompt for git name, email, and work profile
-2. Install Homebrew (if not present)
-3. Install all packages from Brewfile based on profile
-4. Apply all configuration files
-5. Configure macOS system defaults
-6. Set up Dock with essential applications
-
-## Important Implementation Details
-
-### Package Installation Script (`run_onchange_after_apply_install-packages.sh.tmpl`)
-
-This script is the heart of system setup and runs whenever its content changes. It:
-
-1. **Installs Homebrew** - Detects architecture (Apple Silicon vs Intel) and installs appropriately
-2. **Installs packages** - Runs `brew bundle` against `~/Brewfile` (generated from template)
-3. **Configures macOS defaults** - Sets preferences for:
-   - Dock (icon size, magnification, recents, app layout with dockutil)
-   - Safari (show full URL)
-   - Screenshots (no shadow, save to Desktop)
-   - Keyboard (Caps Lock → Control)
-   - Trackpad (3-finger drag, tap to click, natural scroll)
-   - Finder (status bar, folders first, no extension warnings)
-   - Mail (conversation view settings)
-4. **Restarts affected apps** - Restarts Dock, Finder, Mail, SystemUIServer
-
-### Profile System
-
-The `.work` boolean controls package installation:
-- **Work profile** (`work = true`): Installs Postman
-- **Personal profile** (`work = false`): Installs Audacity, IINA, Meta, Soulseek, Tiny Player
+Dock layout: Apps, Brave Browser, Mail, Calendar, iTerm, Music, [Slack if work], System Settings, Documents, Downloads.
 
 ### Zsh Configuration
 
-The `dot_zshrc` file is a complete, standalone configuration that includes:
-- Environment variables (EDITOR=vim, PATH setup for Homebrew)
-- Completion system with case-insensitive matching
-- History configuration with deduplication
-- Tool integrations: zoxide (cd replacement), mise (runtime manager), starship (prompt)
-- Sources `~/.zshrc.secrets` if present for sensitive variables
+Split across three sourced files:
+- `~/.zshrc` — env vars (`EDITOR=nvim`), completions, zsh options, plugins (autosuggestions, fast-syntax-highlighting, history-substring-search), tool evals (zoxide, mise, starship)
+- `~/.zshrc.alias` — editor aliases, git functions/aliases, Claude CLI aliases
+- `~/.zshrc.secrets` — sourced if present, for sensitive variables
 
-## Common Patterns
+### Neovim Configuration
 
-### Adding a New App to Brewfile
+Uses lazy.nvim. Plugin configs are in `dot_config/nvim/lua/vicent/lazy/` — one file per plugin group (lsp, cmp, telescope, treesitter, git, colors, etc.).
+
+### New Machine Setup
+
 ```bash
-# Edit Brewfile.tmpl
-chezmoi edit ~/Brewfile
-
-# Add to appropriate section:
-cask 'app-name'  # For all profiles
-
-# OR for profile-specific:
-{{- if .work }}
-cask 'work-only-app'
-{{- end }}
-
-# Commit and apply
-chezmoi apply  # This triggers package installation
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply vigosan/dotfiles
 ```
 
-### Adding a macOS Default
-```bash
-# Edit the setup script
-chezmoi edit -a ~/.local/share/chezmoi/run_onchange_after_apply_install-packages.sh.tmpl
-
-# Add your defaults write command in the "Configure macOS defaults" section
-# Example: defaults write com.apple.finder ShowHiddenFiles -bool true
-
-# Apply (this will run the script)
-chezmoi apply
-```
-
-### Changing Git Configuration
-```bash
-# Edit the template
-chezmoi edit ~/.gitconfig
-
-# Changes to .data values require editing .chezmoidata.toml
-# Changes to template structure are in dot_gitconfig.tmpl
-```
+Prompts for name, email, and work profile, then runs everything automatically.
