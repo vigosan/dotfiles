@@ -1,0 +1,16 @@
+#!/bin/bash
+{{- if .work }}
+
+if ! command -v claude &>/dev/null; then
+  echo "⚠️  Claude Code not installed — skipping plugin install."
+  echo "   Install Claude Code and run: claude plugin marketplace add git@git.gitlab.flywire.tech:flywire/development/ai-agents-rules.git"
+  exit 0
+fi
+
+echo "Installing Flywire Claude Code plugin..."
+claude plugin marketplace add git@git.gitlab.flywire.tech:flywire/development/ai-agents-rules.git
+
+echo "Flywire Claude Code plugin installed."
+{{- else }}
+echo "Personal profile — skipping work Claude plugin install."
+{{- end }}
