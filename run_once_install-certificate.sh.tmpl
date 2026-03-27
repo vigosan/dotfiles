@@ -15,7 +15,7 @@ TMPFILE=$(mktemp /tmp/certificate.XXXXXX.p12)
 trap 'rm -f "$TMPFILE"' EXIT
 
 echo "Downloading certificate from 1Password..."
-op document get "certificado-digital" --vault "Private" --output "$TMPFILE"
+op document get "certificado-digital" --vault "Private" --output "$TMPFILE" --force
 
 CERT_PASSWORD="$(op read "op://Private/certificado-digital/password")"
 
