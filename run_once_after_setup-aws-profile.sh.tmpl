@@ -1,0 +1,25 @@
+#!/bin/bash
+{{- if .work }}
+
+mkdir -p ~/.aws
+
+if grep -q "\[profile ai_codegen\]" ~/.aws/config 2>/dev/null; then
+  echo "AWS ai_codegen profile already configured."
+  exit 0
+fi
+
+cat >> ~/.aws/config << 'EOF'
+
+[profile ai_codegen]
+sso_start_url  = https://flywire.awsapps.com/start
+sso_region     = us-east-1
+sso_account_id = 193501891505
+sso_role_name  = CodeGeneration
+region         = us-east-1
+cli_pager      =
+EOF
+
+echo "AWS ai_codegen profile added."
+{{- else }}
+echo "Personal profile — skipping AWS setup."
+{{- end }}
