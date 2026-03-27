@@ -62,7 +62,7 @@ Available in all `.tmpl` files:
 
 The `.work` boolean gates both packages and shell config:
 
-**Work only** (`{{ if .work }}`): Postman, Slack, `claude-fw*` aliases (AWS Bedrock), CodeArtifact env sourcing
+**Work only** (`{{ if .work }}`): Postman, Slack, CodeArtifact env sourcing
 
 **Personal only** (`{{ else }}`): Audacity, ffmpeg, IINA, Meta, rekordbox, soulseek, spek, spotify, Stripe CLI, Telegram, Tiny Player
 

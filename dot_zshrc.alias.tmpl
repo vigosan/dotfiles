@@ -52,10 +52,6 @@ alias claude-yr='claude --dangerously-skip-permissions --resume'
 # Work-specific Aliases
 # ============================================================================
 
-# Work Claude (uses AWS Bedrock)
-alias claude-fw='CLAUDE_CODE_USE_BEDROCK=1 AWS_PROFILE=ai_codegen AWS_REGION=us-east-1 claude'
-alias claude-fw-yolo='CLAUDE_CODE_USE_BEDROCK=1 AWS_PROFILE=ai_codegen AWS_REGION=us-east-1 claude --dangerously-skip-permissions'
-alias claude-fw-r='CLAUDE_CODE_USE_BEDROCK=1 AWS_PROFILE=ai_codegen AWS_REGION=us-east-1 claude --resume'
 
 function aws-fw() {
   echo "→ AWS SSO login..."
