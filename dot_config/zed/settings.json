@@ -118,6 +118,9 @@
     "button": false,
     "font_family": "MonoLisa"
   },
+  "auto_install_extensions": {
+    "tokyo-night": true
+  },
   "theme": "Tokyo Night Storm",
   "toolbar": {
     "breadcrumbs": false,
