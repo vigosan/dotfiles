@@ -1,0 +1,69 @@
+#!/bin/bash
+{{- if .work }}
+
+mkdir -p ~/.aws
+
+cat > ~/.aws/config << 'EOF'
+[default]
+sso_start_url  = https://flywire.awsapps.com/start
+sso_region     = us-east-1
+output         = json
+sso_account_id = 306077209789
+sso_role_name  = Developer
+region         = us-east-1
+cli_pager      =
+
+########################
+# FLYWIRE ORGANIZATION #
+########################
+
+[profile sso_platform_pro_dev]
+sso_start_url  = https://flywire.awsapps.com/start
+sso_region     = us-east-1
+sso_account_id = 550729121634
+sso_role_name  = AdminReadOnly
+region         = us-east-1
+cli_pager      =
+
+[profile sso_platform_pro_devsudo]
+sso_start_url  = https://flywire.awsapps.com/start
+sso_region     = us-east-1
+sso_account_id = 550729121634
+sso_role_name  = DeveloperSudo
+region         = us-east-1
+cli_pager      =
+
+[profile sso_platform_sta_dev]
+sso_start_url  = https://flywire.awsapps.com/start
+sso_region     = us-east-1
+sso_account_id = 306077209789
+sso_role_name  = Developer
+region         = us-east-1
+cli_pager      =
+
+# Sandbox
+[profile sso_sandbox_admin]
+sso_start_url  = https://flywire.awsapps.com/start
+sso_region     = us-east-1
+sso_account_id = 945362288828
+sso_role_name  = Admin
+region         = us-east-1
+cli_pager      =
+
+##############################
+# BEDROCK IA CODEGEN access  #
+##############################
+
+[profile ai_codegen]
+sso_start_url  = https://flywire.awsapps.com/start
+sso_region     = us-east-1
+sso_account_id = 193501891505
+sso_role_name  = CodeGeneration
+region         = us-east-1
+cli_pager      =
+EOF
+
+echo "AWS config written."
+{{- else }}
+echo "Personal profile — skipping AWS setup."
+{{- end }}
