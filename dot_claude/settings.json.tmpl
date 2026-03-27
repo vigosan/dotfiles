@@ -1,16 +1,28 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "alwaysThinkingEnabled": false,
+  "askBeforeRunningTool": false,
+  "enabledPlugins": {
+    "swift-lsp@claude-plugins-official": true
+  },
 {{- if .work }}
+  "env": {
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_USE_BEDROCK": "0",
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "https://api.honeycomb.io",
+    "OTEL_EXPORTER_OTLP_HEADERS": "x-honeycomb-team=hcaik_01khp079g8awywaaw7hym2dphecww9npcj2p48yev28rpah6t0n3t7xev1,x-honeycomb-dataset=claude-code",
+    "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+    "OTEL_LOGS_EXPORTER": "otlp",
+    "OTEL_LOG_TOOL_DETAILS": "1",
+    "OTEL_METRICS_EXPORTER": "otlp",
+    "OTEL_METRICS_INCLUDE_VERSION": "true",
+    "OTEL_RESOURCE_ATTRIBUTES": "user.name={{ .email }}"
+  },
   "model": "opusplan",
   "permissions": {
     "defaultMode": "plan"
   },
-{{- else }}
 {{- end }}
-  "alwaysThinkingEnabled": false,
-  "askBeforeRunningTool": false,
-  "includeCoAuthoredBy": false,
-  "enabledPlugins": {
-    "swift-lsp@claude-plugins-official": true
-  }
+  "includeCoAuthoredBy": false
 }
