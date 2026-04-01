@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if ls ~/Library/Fonts/MonoLisa*.ttf &>/dev/null 2>&1; then
+  echo "MonoLisa font already installed, skipping."
+  exit 0
+fi
+
 if ! command -v op &>/dev/null || ! op account list &>/dev/null 2>&1; then
   echo "⚠️  1Password CLI not authenticated — skipping MonoLisa font install."
   echo "   Sign in with 'op signin' and run: chezmoi apply"
