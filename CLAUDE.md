@@ -72,7 +72,7 @@ The `.work` boolean gates both packages and shell config:
 
 Runs whenever file content changes. Order: Homebrew install → `brew bundle` → GitHub CLI + Copilot extension → macOS defaults (Dock, Finder, Trackpad, Screenshot, General UI) → restart Dock/Finder/SystemUIServer.
 
-Dock layout: Apps, Brave Browser, Mail, Calendar, iTerm, Music, [Slack if work], System Settings, Documents, Downloads.
+Dock layout: Apps, Brave Browser, Mail, Calendar, Ghostty, Music, [Slack if work], System Settings, Documents, Downloads.
 
 ### Zsh Configuration
 
