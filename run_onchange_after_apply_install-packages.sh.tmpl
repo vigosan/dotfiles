@@ -100,11 +100,6 @@ if command -v dockutil &>/dev/null; then
   dockutil --no-restart --add '~/Downloads'
 fi
 
-# Set custom Ghostty icon
-if command -v fileicon &>/dev/null && [[ -f "$HOME/.config/ghostty/AppIcon.icns" ]]; then
-  fileicon set /Applications/Ghostty.app "$HOME/.config/ghostty/AppIcon.icns"
-fi
-
 ## Screen
 # Save screenshots to the desktop
 defaults write com.apple.screencapture "disable-shadow" -bool "true" # Disable shadow in screenshots
