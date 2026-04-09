@@ -122,4 +122,7 @@ precmd() { echo -ne '\e[1 q' }
 
 # CodeArtifact environment
 [[ -f "$HOME/.codeartifact_env" ]] && source "$HOME/.codeartifact_env"
+
+# Added by Magellan CodeArtifact login command
+source "$HOME/.codeartifact_env"
 {{- end }}
