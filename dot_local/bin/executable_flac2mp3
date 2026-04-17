@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+delete=false
+if [[ "${1:-}" == "--delete" ]]; then
+  delete=true
+  shift
+fi
+
+if [[ $# -eq 0 ]]; then
+  echo "Usage: flac2mp3 [--delete] <file.flac> [file2.flac ...]"
+  echo "       flac2mp3 --delete *.flac"
+  echo ""
+  echo "Options:"
+  echo "  --delete  Remove original FLAC files after successful conversion"
+  exit 1
+fi
+
+for file in "$@"; do
+  if [[ ! -f "$file" ]]; then
+    echo "File not found: $file" >&2
+    continue
+  fi
+  output="${file%.flac}.mp3"
+  echo "Converting: $file -> $output"
+  if ffmpeg -i "$file" -c:a libmp3lame -q:a 0 "$output"; then
+    if [[ "$delete" == true ]]; then
+      rm "$file"
+      echo "Deleted: $file"
+    fi
+  else
+    echo "Conversion failed: $file" >&2
+  fi
+done
