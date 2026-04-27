@@ -26,7 +26,7 @@ confirm-close-surface = false
 # Quick terminal
 quick-terminal-position = top
 quick-terminal-screen = main
-keybind = global:cmd+grave_accent=toggle_quick_terminal
+keybind = global:opt+grave_accent=toggle_quick_terminal
 bold-is-bright = true
 minimum-contrast = 2
 selection-invert-fg-bg = true
