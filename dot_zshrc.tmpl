@@ -117,7 +117,9 @@ _zsh_cache_eval zoxide zoxide init --cmd z zsh
 _zsh_cache_eval mise mise activate zsh
 _zsh_cache_eval starship starship init zsh
 
-precmd() { echo -ne '\e[1 q' }
+autoload -Uz add-zsh-hook
+add-zsh-hook precmd _set_cursor_beam
+_set_cursor_beam() { echo -ne '\e[1 q' }
 {{- if .work }}
 
 # CodeArtifact environment
