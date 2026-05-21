@@ -21,6 +21,15 @@ shell-integration-features = no-cursor
 term = xterm-256color
 confirm-close-surface = false
 
+# Splits
+split-preserve-zoom = navigation
+unfocused-split-opacity = 0.7
+
+# Visual
+window-colorspace = "display-p3"
+background-opacity = 0.95
+background-blur = true
+
 # Quick terminal
 quick-terminal-position = top
 quick-terminal-screen = main
