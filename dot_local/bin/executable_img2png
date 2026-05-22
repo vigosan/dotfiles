@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+delete=false
+if [[ "${1:-}" == "--delete" ]]; then
+  delete=true
+  shift
+fi
+
+if [[ $# -eq 0 ]]; then
+  echo "Usage: img2png [--delete] <image> [image2 ...]"
+  echo "       img2png --delete *.jpg"
+  echo ""
+  echo "Options:"
+  echo "  --delete  Remove original files after successful conversion"
+  exit 1
+fi
+
+for file in "$@"; do
+  if [[ ! -f "$file" ]]; then
+    echo "File not found: $file" >&2
+    continue
+  fi
+  output="${file%.*}.png"
+  if [[ "$file" == "$output" ]]; then
+    echo "Already PNG, skipping: $file"
+    continue
+  fi
+  echo "Converting: $file -> $output"
+  if sips -s format png "$file" --out "$output" >/dev/null; then
+    if [[ "$delete" == true ]]; then
+      rm "$file"
+      echo "Deleted: $file"
+    fi
+  else
+    echo "Conversion failed: $file" >&2
+  fi
+done
