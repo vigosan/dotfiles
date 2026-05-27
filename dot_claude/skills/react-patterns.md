@@ -70,6 +70,28 @@ src/
 - Ports & Adapters: interfaces in application, implementations in services
 - Hooks as DI container
 
+## Single Responsibility (SRP)
+
+One component = one concern. Split fetching, state logic, and rendering into separate units.
+
+```typescript
+// ❌ Monolithic: fetch + filter + render
+const Products = () => {
+  const [products, setProducts] = useState([]);
+  const [rate, setRate] = useState(1);
+  useEffect(() => { fetch('/api/products')... }, []);
+  return <>{products.filter(p => p.rating > rate).map(...)}</>;
+};
+
+// ✅ Separated concerns
+const useProducts = () => { /* data fetching */ };
+const useFilter = () => { /* filter state */ };
+const ProductCard = ({ product }) => { /* presentation */ };
+const RatingFilter = ({ value, onChange }) => { /* presentation */ };
+```
+
+Split signals: >1 reason to change, mixed I/O + UI, hard to name in one phrase.
+
 ## Dependency Inversion
 
 ```typescript
@@ -85,3 +107,7 @@ const UserList = ({ userRepository }: Props) => {
 ```
 
 Inject via props, context for global deps, repository pattern.
+
+## References
+
+- SRP in React (Khoshnevis): https://medium.com/@hossein.khoshnevis77/solid-in-react-js-single-responsibility-9fbfde0c2e49
