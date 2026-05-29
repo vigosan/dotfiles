@@ -110,6 +110,54 @@ const UserList = ({ userRepository }: Props) => {
 
 Inject via props, context for global deps, repository pattern.
 
+## Performance Patterns
+
+### Granular Query Selectors
+Avoid re-rendering a whole list when only one item changes. Use TanStack Query `select` to subscribe to the minimal slice of data each component needs.
+
+```typescript
+// ❌ Every consumer re-renders when any issue changes
+const { data: issues } = useQuery({ queryKey: ['issues'], queryFn: fetchIssues });
+
+// ✅ Re-renders only when this issue's title changes
+const { data: title } = useQuery({
+  queryKey: ['issues'],
+  queryFn: fetchIssues,
+  select: (issues) => issues.find((i) => i.id === id)?.title,
+});
+```
+
+### Route-Level Code Splitting
+Lazy-load route components and their data dependencies. With TanStack Router, combine `lazy()` with route loaders so each route chunk is fetched in parallel, not waterfall.
+
+```typescript
+// ✅ Each route is its own chunk; loader runs in parallel with component fetch
+export const issuesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/issues',
+  loader: () => queryClient.ensureQueryData(issuesQuery()),
+  component: lazy(() => import('./IssuesPage')),
+});
+```
+
+### Animation Constraints
+Only animate composited properties — anything else triggers layout recalculation.
+
+- **Safe**: `transform`, `opacity`
+- **Never animate**: `width`, `height`, `margin`, `padding`, `top`, `left`
+- Durations: appear ≤100ms, dismiss ≤150ms
+- Asymmetric timing: elements appear instantly, fade out slowly
+
+```typescript
+// ✅ GPU-composited, no layout recalc
+<motion.div
+  initial={{ opacity: 0, transform: 'translateY(4px)' }}
+  animate={{ opacity: 1, transform: 'translateY(0)' }}
+  exit={{ opacity: 0 }}
+  transition={{ duration: 0.1 }}
+/>
+```
+
 ## References
 
 - SRP in React (Khoshnevis): https://medium.com/@hossein.khoshnevis77/solid-in-react-js-single-responsibility-9fbfde0c2e49
