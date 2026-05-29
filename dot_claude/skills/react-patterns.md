@@ -44,6 +44,8 @@ Pending states in forms without prop drilling.
 
 ## Composition Patterns
 
+**Composition first.** Prefer composing with `children`/slots over configuring a component through props. When a component grows boolean/config props or conditionally renders pieces, expose those pieces as composable children instead. Reach for prop-passing only when the parent must own the data.
+
 - **Compound Components**: Share state via context
 - **Context-Based**: Granular contexts + custom hooks
 - **Render Props**: Inversion of control
@@ -111,3 +113,4 @@ Inject via props, context for global deps, repository pattern.
 ## References
 
 - SRP in React (Khoshnevis): https://medium.com/@hossein.khoshnevis77/solid-in-react-js-single-responsibility-9fbfde0c2e49
+- Composition pattern over props (Pomp): https://medium.com/@guilherme.pomp/creating-react-components-with-the-composition-pattern-f59c895f27bc
