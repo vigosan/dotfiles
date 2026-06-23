@@ -20,6 +20,11 @@ export PKG_CONFIG_PATH="/opt/homebrew/opt/libyaml/lib/pkgconfig"
 # Base PATH - include local bin for chezmoi and other tools
 export PATH="$HOME/.local/bin:$HOME/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
 
+{{- if .work }}
+# Rancher Desktop
+export PATH="$HOME/.rd/bin:$PATH"
+{{- end }}
+
 # ============================================================================
 # Sensitive Environment Variables
 # ============================================================================
