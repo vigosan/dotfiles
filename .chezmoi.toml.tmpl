@@ -1,12 +1,17 @@
 {{- $work := promptBool "Use work profile" false -}}
 {{- $email := promptString "Git email" "vigosan@gmail.com" -}}
 {{- $name := promptString "Git name" "Vicent Gozalbes" -}}
+{{- $hostname := "" -}}
+{{- if not $work -}}
+{{-   $hostname = promptString "Computer name" "mbp" -}}
+{{- end -}}
 
 [data]
 name = {{ $name | quote }}
 email = {{ $email | quote }}
 work = {{ $work }}
 work_email = "vicent@flywire.com"
+hostname = {{ $hostname | quote }}
 
 [onepassword]
 {{- if stat "/opt/homebrew/bin/op" }}

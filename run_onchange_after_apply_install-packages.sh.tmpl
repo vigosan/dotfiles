@@ -96,6 +96,14 @@ fi
 
 # Configure macOS defaults
 echo "Setting macOS defaults..."
+{{- if and (not .work) .hostname }}
+
+# Set the computer name (personal profile only; work machines are managed by IT)
+echo "Setting computer name to {{ .hostname }}..."
+sudo scutil --set ComputerName "{{ .hostname }}"
+sudo scutil --set LocalHostName "{{ .hostname }}"
+sudo scutil --set HostName "{{ .hostname }}"
+{{- end }}
 
 # Close any open System Preferences panes
 osascript -e 'tell application "System Preferences" to quit'
