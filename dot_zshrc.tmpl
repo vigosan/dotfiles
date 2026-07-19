@@ -111,9 +111,16 @@ fi
 _zsh_cache_eval() {
   local cache="$HOME/.cache/zsh/$1.zsh"
   local bin="${commands[$1]}"
-  if [[ ! -f "$cache" || "$bin" -nt "$cache" ]]; then
+  [[ -z "$bin" ]] && return
+  if [[ ! -s "$cache" || "$bin" -nt "$cache" ]]; then
     mkdir -p "$HOME/.cache/zsh"
-    "${@:2}" > "$cache"
+    local tmp="$cache.tmp"
+    if "${@:2}" > "$tmp" && [[ -s "$tmp" ]]; then
+      mv "$tmp" "$cache"
+    else
+      rm -f "$tmp"
+      return
+    fi
   fi
   source "$cache"
 }
