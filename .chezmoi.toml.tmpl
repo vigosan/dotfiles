@@ -9,4 +9,10 @@ work = {{ $work }}
 work_email = "vicent@flywire.com"
 
 [onepassword]
+{{- if stat "/opt/homebrew/bin/op" }}
+command = "/opt/homebrew/bin/op"
+{{- else if stat "/usr/local/bin/op" }}
+command = "/usr/local/bin/op"
+{{- else }}
 command = "op"
+{{- end }}

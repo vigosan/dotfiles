@@ -20,6 +20,28 @@ This will:
 - Configure zsh, git, Zed editor
 - Apply macOS system defaults (dock, trackpad, finder, etc.)
 
+### Two-phase bootstrap (secrets)
+
+Secrets in `~/.zshrc.secrets` come from 1Password via `op`. On a **brand-new
+Mac**, 1Password is not yet authenticated during the first `apply`, so those
+secrets can't be read yet. The bootstrap handles this in two phases:
+
+1. **First `apply` (automatic):** installs everything — Homebrew, the 1Password
+   app + CLI, all packages and config. `~/.zshrc.secrets` is written with a
+   warning comment instead of the keys, and the run does **not** fail.
+
+2. **Second `apply` (manual, after signing in):** open the 1Password desktop
+   app, enable the CLI integration (Settings → Developer → *Integrate with
+   1Password CLI*) — or run `op signin` — then re-apply to populate the secrets:
+
+   ```bash
+   op signin        # or just unlock the desktop app with CLI integration on
+   chezmoi apply
+   ```
+
+   `~/.zshrc.secrets` now contains your API keys. `source ~/.zshrc` (or open a
+   new shell) to load them.
+
 ## Daily usage
 
 ### Sync changes from other machines

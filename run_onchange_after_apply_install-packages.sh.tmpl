@@ -68,6 +68,29 @@ else
   echo "GitHub CLI (gh) not found. Install it first with: brew install gh"
 fi
 
+# Check 1Password secrets
+if command -v op &>/dev/null; then
+  if op read --no-newline "op://Private/API Keys/gemini" &>/dev/null; then
+    echo "✅ 1Password CLI authenticated — secrets available."
+  else
+    # App integration active but session locked → try a non-blocking refresh.
+    if op account list &>/dev/null; then
+      op signin --raw &>/dev/null || true
+    fi
+    if op read --no-newline "op://Private/API Keys/gemini" &>/dev/null; then
+      echo "✅ 1Password session refreshed — re-applying to load secrets..."
+      chezmoi apply "$HOME/.zshrc.secrets"
+    else
+      echo "⚠️  1Password not signed in — secrets in ~/.zshrc.secrets NOT loaded."
+      echo "💡 Open the 1Password app, enable Settings → Developer →"
+      echo "   'Integrate with 1Password CLI', then run: chezmoi apply"
+    fi
+  fi
+else
+  echo "⚠️  1Password CLI (op) not found — secrets NOT loaded."
+  echo "💡 After it installs, run: chezmoi apply"
+fi
+
 # Configure macOS defaults
 echo "Setting macOS defaults..."
 
