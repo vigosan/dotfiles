@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# plist hash: {{ include "Library/LaunchAgents/com.vicent.mount-nas.plist.tmpl" | sha256sum }}
+
+plist="$HOME/Library/LaunchAgents/com.vicent.mount-nas.plist"
+
+launchctl bootout "gui/$(id -u)/com.vicent.mount-nas" 2>/dev/null || true
+launchctl bootstrap "gui/$(id -u)" "$plist"
+launchctl kickstart "gui/$(id -u)/com.vicent.mount-nas"
+
+echo "Loaded com.vicent.mount-nas LaunchAgent."

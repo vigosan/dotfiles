@@ -1,0 +1,5 @@
+{{- if .work }}
+.local/bin/mount-nas-public
+Library
+load-mount-nas-agent.sh
+{{- end }}

@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+url="smb://GUEST:@MyCloud._smb._tcp.local/Public"
+mountpoint="/Volumes/Public"
+
+if mount | grep -q " on ${mountpoint} "; then
+  exit 0
+fi
+
+for attempt in 1 2 3 4 5 6; do
+  open "$url"
+  sleep 5
+  if mount | grep -q " on ${mountpoint} "; then
+    echo "Mounted ${url} on ${mountpoint}"
+    exit 0
+  fi
+done
+
+echo "Failed to mount ${url} after several attempts" >&2
+exit 1
