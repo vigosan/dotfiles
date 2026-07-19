@@ -1,22 +1,16 @@
 #!/bin/bash
-
-if [[ $(uname -m) == "arm64" ]]; then
-  BREW_BIN="/opt/homebrew/bin/brew"
-else
-  BREW_BIN="/usr/local/bin/brew"
-fi
+{{ template "brew-env.sh" . }}
 
 # Install Homebrew if not present
 if ! command -v brew &>/dev/null; then
   echo "Installing Homebrew..."
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
   echo "eval \"\$($BREW_BIN shellenv)\"" >> ~/.zprofile
+  eval "$("$BREW_BIN" shellenv)"
   echo "Homebrew installed successfully!"
 else
   echo "Homebrew already installed."
 fi
-
-eval "$($BREW_BIN shellenv)"
 
 # Update Homebrew
 echo "Updating Homebrew..."
@@ -34,7 +28,13 @@ if [ -f "$HOME/Brewfile" ]; then
   TMPFILE=$(mktemp)
   trap 'rm -f "$TMPFILE"' EXIT
   grep -v "^mas " "$HOME/Brewfile" > "$TMPFILE"
-  brew bundle --file="$TMPFILE"
+  # --no-lock avoids writing Brewfile.lock.json into $HOME. A single failing
+  # formula (e.g. an untrusted tap) must not abort the whole bootstrap, so we
+  # tolerate a non-zero exit and report it instead.
+  if ! brew bundle --no-lock --file="$TMPFILE"; then
+    echo "⚠️  Some Brewfile entries failed to install (see output above)."
+    echo "   Fix them and re-run: brew bundle --file=~/Brewfile"
+  fi
   echo "⚠️  App Store apps (Keynote, Numbers, Pages, Xcode) require manual install."
   echo "   Sign into App Store, then run: brew bundle --file=~/Brewfile"
 
@@ -68,18 +68,21 @@ else
   echo "GitHub CLI (gh) not found. Install it first with: brew install gh"
 fi
 
-# Check 1Password secrets
-if command -v op &>/dev/null; then
-  if op read --no-newline "op://Private/API Keys/gemini" &>/dev/null; then
+# Check 1Password secrets. OP_READY drives the final summary of pending steps.
+OP_READY=false
+if [ -n "$OP" ]; then
+  if "$OP" read --no-newline "op://Private/API Keys/gemini" &>/dev/null; then
+    OP_READY=true
     echo "✅ 1Password CLI authenticated — secrets available."
   else
     # App integration active but session locked → try a non-blocking refresh.
-    if op account list &>/dev/null; then
-      op signin --raw &>/dev/null || true
+    if "$OP" account list &>/dev/null; then
+      "$OP" signin --raw &>/dev/null || true
     fi
-    if op read --no-newline "op://Private/API Keys/gemini" &>/dev/null; then
+    if "$OP" read --no-newline "op://Private/API Keys/gemini" &>/dev/null; then
+      OP_READY=true
       echo "✅ 1Password session refreshed — re-applying to load secrets..."
-      chezmoi apply "$HOME/.zshrc.secrets"
+      chezmoi apply
     else
       echo "⚠️  1Password not signed in — secrets in ~/.zshrc.secrets NOT loaded."
       echo "💡 Open the 1Password app, enable Settings → Developer →"
@@ -167,3 +170,31 @@ for app in "Dock" "Finder" "SystemUIServer"; do
 done
 
 echo "macOS configuration completed!"
+
+# Summary of steps that need a second pass or manual action.
+PENDING=()
+if [ "$OP_READY" != true ]; then
+  PENDING+=("1Password: sign in (unlock app + enable CLI integration), then: chezmoi apply")
+fi
+if ! gh auth status &>/dev/null; then
+  PENDING+=("GitHub CLI: gh auth login")
+fi
+if ! security find-identity -v 2>/dev/null | grep -q "GOZALBES SANCHIS VICENT - 20440409X"; then
+  PENDING+=("Digital certificate: installs on next 'chezmoi apply' once 1Password is signed in")
+fi
+if ! ls ~/Library/Fonts/MonoLisa*.ttf &>/dev/null 2>&1; then
+  PENDING+=("MonoLisa font: installs on next 'chezmoi apply' once 1Password is signed in")
+fi
+PENDING+=("App Store apps (Keynote, Numbers, Pages, Xcode): sign in, then brew bundle --file=~/Brewfile")
+
+echo ""
+echo "════════════════════════════════════════════════════════════"
+if [ ${#PENDING[@]} -gt 0 ]; then
+  echo "  Setup complete. Remaining manual steps:"
+  for item in "${PENDING[@]}"; do
+    echo "    • $item"
+  done
+else
+  echo "  Setup complete — nothing pending. 🎉"
+fi
+echo "════════════════════════════════════════════════════════════"

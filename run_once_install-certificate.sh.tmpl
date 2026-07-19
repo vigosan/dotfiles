@@ -1,6 +1,7 @@
 #!/bin/bash
+{{ template "brew-env.sh" . }}
 
-if ! command -v op &>/dev/null || ! op account list &>/dev/null 2>&1; then
+if [ -z "$OP" ] || ! "$OP" account list &>/dev/null 2>&1; then
   echo "⚠️  1Password CLI not authenticated — skipping certificate install."
   echo "   Sign in with 'op signin' and run: chezmoi apply"
   exit 0
@@ -15,9 +16,9 @@ TMPFILE=$(mktemp /tmp/certificate.XXXXXX.p12)
 trap 'rm -f "$TMPFILE"' EXIT
 
 echo "Downloading certificate from 1Password..."
-op document get "certificado-digital" --vault "Private" --output "$TMPFILE" --force
+"$OP" document get "certificado-digital" --vault "Private" --output "$TMPFILE" --force
 
-CERT_PASSWORD="$(op read "op://Private/certificado-digital/password")"
+CERT_PASSWORD="$("$OP" read "op://Private/certificado-digital/password")"
 
 echo "Installing certificate..."
 security import "$TMPFILE" -k ~/Library/Keychains/login.keychain-db -P "$CERT_PASSWORD"

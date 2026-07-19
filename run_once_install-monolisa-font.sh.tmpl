@@ -1,11 +1,12 @@
 #!/bin/bash
+{{ template "brew-env.sh" . }}
 
 if ls ~/Library/Fonts/MonoLisa*.ttf &>/dev/null 2>&1; then
   echo "MonoLisa font already installed, skipping."
   exit 0
 fi
 
-if ! command -v op &>/dev/null || ! op account list &>/dev/null 2>&1; then
+if [ -z "$OP" ] || ! "$OP" account list &>/dev/null 2>&1; then
   echo "⚠️  1Password CLI not authenticated — skipping MonoLisa font install."
   echo "   Sign in with 'op signin' and run: chezmoi apply"
   exit 0
@@ -16,7 +17,7 @@ TMPDIR=$(mktemp -d /tmp/monolisa.XXXXXX)
 trap 'rm -rf "$TMPZIP" "$TMPDIR"' EXIT
 
 echo "Downloading MonoLisa font from 1Password..."
-op document get "MonoLisa-Plus-stable" --vault "Private" --output "$TMPZIP"
+"$OP" document get "MonoLisa-Plus-stable" --vault "Private" --output "$TMPZIP"
 
 unzip -q "$TMPZIP" -d "$TMPDIR"
 cp "$TMPDIR"/ttf/*.ttf ~/Library/Fonts/
