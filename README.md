@@ -85,7 +85,7 @@ chezmoi managed         # List managed files
 
 **Packages:**
 - Development tools (git, neovim, mise)
-- Applications (1Password, Docker, Raycast, etc.)
+- Applications (1Password, Raycast, etc.)
 - Mac App Store apps (manual install required)
 
 **Profile-specific packages:**
