@@ -143,6 +143,23 @@ connect() {
   return 1
 }
 
+field() {
+  sed -n "s/^ *$1: *//p" <<<"$2" | head -1
+}
+
+status() {
+  local stats state server duration
+  stats="$(printf 'stats\nexit\n' | "$VPN_BIN" -s 2>&1)"
+  state="$(field 'Connection State' "$stats")"
+  if [[ "$state" != "Connected" ]]; then
+    fail "disconnected"
+    return 1
+  fi
+  server="$(field 'Server Address' "$stats")"
+  duration="$(field 'Duration' "$stats")"
+  ok "connected to $server (up $duration)"
+}
+
 start() {
   require_tools
   load_config
@@ -152,6 +169,6 @@ start() {
 case "${1:-}" in
   eu|us|sg|au|mx) start "$1" ;;
   disconnect) "$VPN_BIN" disconnect ;;
-  status)     "$VPN_BIN" state ;;
+  status)     require_tools; status ;;
   *)          usage ;;
 esac
