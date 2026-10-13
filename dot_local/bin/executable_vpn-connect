@@ -1,0 +1,157 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+VPN_BIN="/opt/cisco/secureclient/bin/vpn"
+GUI_PATTERN="Cisco Secure Client.app/Contents/MacOS/Cisco Secure Client$"
+CONFIG_FILE="${VPN_CONNECT_CONFIG:-$HOME/.config/vpn-connect/config}"
+PROMPT_TIMEOUT=20
+MAX_ATTEMPTS=3
+LAST_ERROR=""
+SEEN=0
+
+if [[ -t 1 ]]; then
+  GREEN=$'\e[32m'; RED=$'\e[31m'; DIM=$'\e[2m'; RESET=$'\e[0m'
+else
+  GREEN=""; RED=""; DIM=""; RESET=""
+fi
+
+info() { printf '%s[*]%s %s\n' "$GREEN" "$RESET" "$1"; }
+ok()   { printf '%s[+]%s %s\n' "$GREEN" "$RESET" "$1"; }
+fail() { printf '%s[-]%s %s\n' "$RED" "$RESET" "$1" >&2; }
+note() { printf '%s    %s%s\n' "$DIM" "$1" "$RESET"; }
+
+usage() {
+  echo "Usage: vpn-connect {eu|us|sg|au|mx|disconnect|status}" >&2
+  exit 1
+}
+
+load_config() {
+  [[ -f "$CONFIG_FILE" ]] || { fail "missing config: $CONFIG_FILE"; exit 1; }
+  source "$CONFIG_FILE"
+  : "${OP_REF:?OP_REF not set in $CONFIG_FILE}"
+}
+
+require_tools() {
+  command -v op >/dev/null || { fail "1Password CLI (op) not found"; exit 1; }
+  command -v perl >/dev/null || { fail "perl not found"; exit 1; }
+  [[ -x "$VPN_BIN" ]] || { fail "Cisco Secure Client CLI not found at $VPN_BIN"; exit 1; }
+}
+
+quit_gui() {
+  pgrep -f "$GUI_PATTERN" >/dev/null || return 0
+  info "closing Cisco Secure Client GUI"
+  osascript -e 'tell application "Cisco Secure Client" to quit' >/dev/null 2>&1 || true
+  local i
+  for i in {1..10}; do
+    pgrep -f "$GUI_PATTERN" >/dev/null || return 0
+    sleep 0.5
+  done
+  fail "Cisco Secure Client GUI did not quit; close it manually"
+  return 1
+}
+
+wait_for_login_prompt() {
+  local log="$1" i
+  for ((i = 0; i < PROMPT_TIMEOUT * 5; i++)); do
+    if grep -qi 'error:' "$log"; then
+      LAST_ERROR="$(grep -i -m1 'error:' "$log" | sed 's/.*error: *//')"
+      return 1
+    fi
+    grep -qi 'username:' "$log" && return 0
+    sleep 0.2
+  done
+  LAST_ERROR="timed out waiting for the login prompt; no credentials were sent"
+  return 1
+}
+
+print_new_notices() {
+  local log="$1" line text previous=""
+  local total
+  total="$(wc -l <"$log")"
+  while IFS= read -r line; do
+    [[ "$line" == *"notice:"* ]] || continue
+    text="${line#*notice: }"
+    [[ "$text" == "$previous" ]] || note "$text"
+    previous="$text"
+  done < <(tail -n +"$((SEEN + 1))" "$log")
+  SEEN="$total"
+}
+
+attempt() {
+  local host="$1" workdir="$2" fifo="$2/in" log="$2/out" pid username password otp
+  rm -f "$fifo" "$log"
+  mkfifo "$fifo"
+
+  "$VPN_BIN" disconnect >/dev/null 2>&1 || true
+  sleep 1
+
+  perl -MPOSIX -e 'POSIX::setsid(); exec @ARGV' "$VPN_BIN" -s <"$fifo" >"$log" 2>&1 &
+  pid=$!
+  exec 3>"$fifo"
+  printf 'connect %s\n' "$host" >&3
+
+  info "handshake with $host"
+  if ! wait_for_login_prompt "$log"; then
+    exec 3>&-
+    kill "$pid" 2>/dev/null || true
+    wait "$pid" 2>/dev/null || true
+    return 1
+  fi
+
+  info "pulling credentials + OTP from 1Password"
+  username="$(op read "$OP_REF/username")"
+  password="$(op read "$OP_REF/password")"
+  otp="$(op read "$OP_REF/one-time password?attribute=otp")"
+
+  info "authenticating as $username"
+  SEEN="$(wc -l <"$log")"
+  printf '%s\n%s,%s\ny\n' "$username" "$password" "$otp" >&3
+  exec 3>&-
+
+  while kill -0 "$pid" 2>/dev/null; do
+    print_new_notices "$log"
+    sleep 0.2
+  done
+  print_new_notices "$log"
+  wait "$pid" 2>/dev/null || true
+
+  grep -q 'state: Connected' "$log" && return 0
+  LAST_ERROR="$(grep -i -m1 'error:' "$log" | sed 's/.*error: *//' || true)"
+  : "${LAST_ERROR:=connection did not reach the Connected state}"
+  return 1
+}
+
+connect() {
+  local region="$1" host workdir n
+  info "resolving $region gateway from 1Password"
+  host="$(op read "$OP_REF/vpn_$region")"
+  workdir="$(mktemp -d)"
+  trap "rm -rf '$workdir'" EXIT
+
+  quit_gui
+
+  for ((n = 1; n <= MAX_ATTEMPTS; n++)); do
+    if attempt "$host" "$workdir"; then
+      ok "tunnel established -> $host"
+      return 0
+    fi
+    fail "$LAST_ERROR"
+    [[ "$LAST_ERROR" == *"server communication"* && "$n" -lt "$MAX_ATTEMPTS" ]] || return 1
+    note "retrying ($((n + 1))/$MAX_ATTEMPTS)..."
+    sleep 3
+  done
+  return 1
+}
+
+start() {
+  require_tools
+  load_config
+  connect "$1"
+}
+
+case "${1:-}" in
+  eu|us|sg|au|mx) start "$1" ;;
+  disconnect) "$VPN_BIN" disconnect ;;
+  status)     "$VPN_BIN" state ;;
+  *)          usage ;;
+esac
