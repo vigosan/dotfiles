@@ -7,8 +7,12 @@ font-feature = +liga
 # Window
 window-padding-x = 8
 window-padding-y = 8
+window-padding-balance = equal
 window-theme = ghostty
-macos-titlebar-style = tabs
+macos-titlebar-style = hidden
+resize-overlay = never
+mouse-hide-while-typing = true
+drag-handle = never
 
 # Cursor
 cursor-style = block
@@ -19,6 +23,7 @@ shell-integration-features = no-cursor
 
 # Terminal
 confirm-close-surface = false
+copy-on-select = clipboard
 
 # Splits
 split-preserve-zoom = navigation
