@@ -41,8 +41,13 @@ alias gl='git log --oneline'
 # Claude CLI Aliases
 # ============================================================================
 
+{{ if .work -}}
+alias cl='claude'
+alias clr='claude --resume'
+{{- else -}}
 alias cl='claude --dangerously-skip-permissions'
 alias clr='claude --dangerously-skip-permissions --resume'
+{{- end }}
 
 {{- if .work }}
 
