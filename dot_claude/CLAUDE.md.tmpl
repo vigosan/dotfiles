@@ -36,6 +36,9 @@ Docker + Makefile + Vite + React 19 + TS + Tailwind v4 + Supabase + TanStack Que
 - Tests for new functionality.
 - One functionality per commit.
 - Descriptive title only (no body, no feat:/fix:).
+{{- if not .work }}
+- No "Generated with AI" footer. No "Co-Authored-By: Claude" trailer.
+{{- end }}
 
 ## Refactoring
 NEVER add functionality while refactoring. Behavior-preserving only.

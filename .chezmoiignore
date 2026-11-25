@@ -3,3 +3,6 @@
 Library
 load-mount-nas-agent.sh
 {{- end }}
+{{- if .work }}
+.claude/settings.json
+{{- end }}
